@@ -53,14 +53,18 @@ function App() {
   try {
     const formData = new FormData();
     formData.append("file", file);
-    const response = await axios.post(`${API_URL}/extract-text`, formData, {
+    const extractResponse = await axios.post(`${API_URL}/extract-text`, formData, {
       headers: { "Content-Type": "multipart/form-data" },
     });
-    if (response.data.text) {
-      setSimplifyInput(response.data.text);
+    if (extractResponse.data.text) {
+      const extractedText = extractResponse.data.text;
+      const simplifyResponse = await axios.post(`${API_URL}/simplify`, {
+        clinical_note: extractedText,
+      });
+      const result = simplifyResponse.data.simplified || simplifyResponse.data.error;
       setSimplifyMessages((prev) => [
         ...prev,
-        { role: "bot", text: `✅ Text extracted from image! Review it in the input box below and click send when ready.` },
+        { role: "bot", text: result },
       ]);
     } else {
       setSimplifyMessages((prev) => [
